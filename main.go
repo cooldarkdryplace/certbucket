@@ -3,6 +3,7 @@ package certbucket
 import (
 	"context"
 	"io/ioutil"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"golang.org/x/crypto/acme/autocert"
@@ -26,7 +27,10 @@ func New(projectID, bucketName string) (*Cache, error) {
 	cache := &Cache{client.Bucket(bucketName)}
 
 	if err := cache.bucket.Create(ctx, projectID, nil); err != nil {
-		return nil, err
+		// For now parsing error text. We do not care if bucket already own by our user.
+		if !strings.Contains(err.Error(), "Error 409") {
+			return nil, err
+		}
 	}
 
 	return cache, nil
